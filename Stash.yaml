@@ -1,0 +1,659 @@
+# Lane + 个人策略 | Stash
+# Date: 2026-09-12
+# 规则集与分层来自 Lane Stash 发行版；策略组对齐 Surge / Loon。
+# 自建节点沿用 Loon 已有 AnyTLS，不从 Surge 增补 Snell。
+# 模板：填写 proxies 自建节点，并将 proxy-providers.订阅.url 换成你的订阅地址。
+
+mode: rule
+log-level: warning
+ipv6: false
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - +.stun.*.*
+    - +.stun.*.*.*
+    - +.stun.*.*.*.*
+    - +.stun.*.*.*.*.*
+    - '*.n.n.srv.nintendo.net'
+    - +.stun.playstation.net
+    - xbox.*.*.microsoft.com
+    - '*.*.xboxlive.com'
+    - '*.msftncsi.com'
+    - '*.msftconnecttest.com'
+    - '*.lan'
+    - '*.local'
+
+proxies: []
+# 自建节点示例：
+# proxies:
+#   - name: Example
+#     type: anytls
+#     server: example.com
+#     port: 443
+#     password: YOUR_PASSWORD
+#     sni: example.com
+#     udp: true
+
+
+proxy-providers:
+  订阅:
+    url: https://YOUR_SUBSCRIPTION_URL
+    interval: 86400
+    benchmark-url: http://cp.cloudflare.com/generate_204
+    benchmark-timeout: 5
+  # 多订阅时复制整块、名称递增即可；我的节点 / 地区组用 include-all，不必改策略组。
+
+proxy-groups:
+  - name: 自建节点
+    type: select
+    include-all: true
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Daily.png
+
+  - name: 我的节点
+    type: select
+    include-all: true
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Rocket.png
+
+  - name: 自动选择
+    type: url-test
+    include-all: true
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png
+
+  - name: 兜底后备策略
+    type: fallback
+    include-all: true
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    interval: 600
+    lazy: true
+    icon: https://github.com/shindgewongxj/WHATSINStash/raw/main/icon/fallback.png
+
+  # 对应 Surge「节点选择」/ Lane「Proxy」
+  - name: Proxy
+    type: select
+    proxies:
+      - 自动选择
+      - 兜底后备策略
+      - 自建节点
+      - 我的节点
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+      - KR Auto
+      - KR Manual
+      - GB Auto
+      - GB Manual
+      - DE Auto
+      - DE Manual
+      - DIRECT
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Proxy.png
+
+  - name: AI
+    type: select
+    proxies: &lane-svc
+      - Proxy
+      - 自动选择
+      - DIRECT
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+      - KR Auto
+      - KR Manual
+      - GB Auto
+      - GB Manual
+      - DE Auto
+      - DE Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/AI.png
+
+  - name: Brokerage
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 自动选择
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Magic.png
+
+  - name: Crypto
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Cryptocurrency_3.png
+
+  - name: YouTube
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/YouTube.png
+
+  - name: TikTok
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/TikTok.png
+
+  - name: Emby
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Emby.png
+
+  - name: Streaming
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Netflix.png
+
+  - name: Gaming
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Steam.png
+
+  - name: Telegram
+    type: select
+    proxies:
+      - Proxy
+      - 自动选择
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+      - KR Auto
+      - KR Manual
+      - GB Auto
+      - GB Manual
+      - DE Auto
+      - DE Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Telegram.png
+
+  - name: Social
+    type: select
+    proxies:
+      - Proxy
+      - 自动选择
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+      - KR Auto
+      - KR Manual
+      - GB Auto
+      - GB Manual
+      - DE Auto
+      - DE Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/X.png
+
+  - name: Developer
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/GitHub.png
+
+  - name: Google
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Google_Search.png
+
+  - name: Microsoft
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 自动选择
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Microsoft.png
+
+  - name: Apple
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 自动选择
+      - US Auto
+      - US Manual
+      - JP Auto
+      - JP Manual
+      - HK Auto
+      - HK Manual
+      - TW Auto
+      - TW Manual
+      - SG Auto
+      - SG Manual
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Apple_1.png
+
+  - name: Final
+    type: select
+    proxies: *lane-svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Global.png
+
+  - name: US Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇺🇸|美国|United\s*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_States.png
+  - name: US Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇺🇸|美国|United\s*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_States.png
+
+  - name: JP Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])JP(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Japan.png
+  - name: JP Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])JP(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Japan.png
+
+  - name: HK Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇭🇰|香港|Hong\s*Kong|(?:^|[^A-Za-z])HK(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Hong_Kong.png
+  - name: HK Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇭🇰|香港|Hong\s*Kong|(?:^|[^A-Za-z])HK(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Hong_Kong.png
+
+  - name: TW Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇹🇼|台湾|臺灣|Taiwan|(?:^|[^A-Za-z])TW(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/China.png
+  - name: TW Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇹🇼|台湾|臺灣|Taiwan|(?:^|[^A-Za-z])TW(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/China.png
+
+  - name: SG Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇸🇬|新加坡|狮|獅|Singapore|(?:^|[^A-Za-z])SG(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Singapore.png
+  - name: SG Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇸🇬|新加坡|狮|獅|Singapore|(?:^|[^A-Za-z])SG(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Singapore.png
+
+  - name: KR Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇰🇷|韩国|韓國|Korea|(?:^|[^A-Za-z])KR(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Korea.png
+  - name: KR Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇰🇷|韩国|韓國|Korea|(?:^|[^A-Za-z])KR(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Korea.png
+
+  - name: GB Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇬🇧|英国|英國|United\s*Kingdom|(?:^|[^A-Za-z])(?:UK|GB)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_Kingdom.png
+  - name: GB Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇬🇧|英国|英國|United\s*Kingdom|(?:^|[^A-Za-z])(?:UK|GB)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_Kingdom.png
+
+  - name: DE Auto
+    type: url-test
+    include-all: true
+    filter: (?i)^.*(?:(?:🇩🇪|德国|德國|Germany|(?:^|[^A-Za-z])DE(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Germany.png
+  - name: DE Manual
+    type: select
+    include-all: true
+    filter: (?i)^.*(?:(?:🇩🇪|德国|德國|Germany|(?:^|[^A-Za-z])DE(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Germany.png
+
+rule-providers:
+  lan-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-domain.list
+    path: ./rulesets/lan-domain.list
+    interval: 86400
+  lan-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-ipcidr.list
+    path: ./rulesets/lan-ipcidr.list
+    interval: 86400
+  lan-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-classical.list
+    path: ./rulesets/lan-classical.list
+    interval: 86400
+  apple-cn-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/apple-cn-domain.list
+    path: ./rulesets/apple-cn-domain.list
+    interval: 86400
+  ai-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/ai-domain.list
+    path: ./rulesets/ai-domain.list
+    interval: 86400
+  ai-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/ai-classical.list
+    path: ./rulesets/ai-classical.list
+    interval: 86400
+  schwab-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/schwab-domain.list
+    path: ./rulesets/schwab-domain.list
+    interval: 86400
+  brokerage-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/brokerage-domain.list
+    path: ./rulesets/brokerage-domain.list
+    interval: 86400
+  crypto-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/crypto-domain.list
+    path: ./rulesets/crypto-domain.list
+    interval: 86400
+  youtube-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/youtube-domain.list
+    path: ./rulesets/youtube-domain.list
+    interval: 86400
+  tiktok-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/tiktok-domain.list
+    path: ./rulesets/tiktok-domain.list
+    interval: 86400
+  emby-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/emby-domain.list
+    path: ./rulesets/emby-domain.list
+    interval: 86400
+  streaming-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-domain.list
+    path: ./rulesets/streaming-domain.list
+    interval: 86400
+  streaming-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-classical.list
+    path: ./rulesets/streaming-classical.list
+    interval: 86400
+  gaming-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/gaming-domain.list
+    path: ./rulesets/gaming-domain.list
+    interval: 86400
+  gaming-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/gaming-classical.list
+    path: ./rulesets/gaming-classical.list
+    interval: 86400
+  telegram-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/telegram-domain.list
+    path: ./rulesets/telegram-domain.list
+    interval: 86400
+  social-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/social-domain.list
+    path: ./rulesets/social-domain.list
+    interval: 86400
+  developer-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/developer-domain.list
+    path: ./rulesets/developer-domain.list
+    interval: 86400
+  developer-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/developer-classical.list
+    path: ./rulesets/developer-classical.list
+    interval: 86400
+  google-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/google-domain.list
+    path: ./rulesets/google-domain.list
+    interval: 86400
+  google-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/google-classical.list
+    path: ./rulesets/google-classical.list
+    interval: 86400
+  microsoft-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/microsoft-domain.list
+    path: ./rulesets/microsoft-domain.list
+    interval: 86400
+  apple-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/apple-domain.list
+    path: ./rulesets/apple-domain.list
+    interval: 86400
+  brokerage-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/brokerage-ip-ipcidr.list
+    path: ./rulesets/brokerage-ip-ipcidr.list
+    interval: 86400
+  china-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/china-domain.list
+    path: ./rulesets/china-domain.list
+    interval: 86400
+  china-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/china-classical.list
+    path: ./rulesets/china-classical.list
+    interval: 86400
+  proxy-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/proxy-domain.list
+    path: ./rulesets/proxy-domain.list
+    interval: 86400
+  proxy-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/proxy-classical.list
+    path: ./rulesets/proxy-classical.list
+    interval: 86400
+  telegram-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/telegram-ip-ipcidr.list
+    path: ./rulesets/telegram-ip-ipcidr.list
+    interval: 86400
+  cn-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/cn-ip-ipcidr.list
+    path: ./rulesets/cn-ip-ipcidr.list
+    interval: 86400
+
+rules:
+  # 个人定制（与 Surge / Loon 一致）
+  - DOMAIN-SUFFIX,gtimg.cn,DIRECT
+  - DOMAIN-SUFFIX,myqcloud.com,DIRECT
+  - DOMAIN,time.apple.com,DIRECT
+  - DOMAIN,time.windows.com,DIRECT
+  - DOMAIN,time.google.com,DIRECT
+  - DOMAIN,keba.host,DIRECT
+  - DOMAIN-SUFFIX,longemby.live,Emby
+  - DOMAIN,cf.longemby.com,Emby
+  - DOMAIN,cfcdn.longemby.com,Emby
+  - DOMAIN-SUFFIX,longemby.top,DIRECT
+  - DOMAIN-SUFFIX,longemby.com,DIRECT
+  - DOMAIN-SUFFIX,apple-relay.apple.com,Apple
+  - DOMAIN-SUFFIX,apple-relay.cloudflare.com,Apple
+  - DOMAIN-SUFFIX,grok.com,AI
+  - DOMAIN-SUFFIX,alipay.com,DIRECT
+  - DOMAIN-SUFFIX,tenpay.com,DIRECT
+  - DOMAIN-SUFFIX,unionpay.com,DIRECT
+
+  # Lane 分层
+  - RULE-SET,lan-domain,DIRECT
+  - RULE-SET,lan-ipcidr,DIRECT,no-resolve
+  - RULE-SET,lan-classical,DIRECT
+  - RULE-SET,apple-cn-domain,DIRECT
+  - RULE-SET,ai-domain,AI
+  - RULE-SET,ai-classical,AI
+  - RULE-SET,schwab-domain,Brokerage
+  - RULE-SET,brokerage-domain,Brokerage
+  - RULE-SET,crypto-domain,Crypto
+  - RULE-SET,youtube-domain,YouTube
+  - RULE-SET,tiktok-domain,TikTok
+  - RULE-SET,emby-domain,Emby
+  - RULE-SET,streaming-domain,Streaming
+  - RULE-SET,streaming-classical,Streaming
+  - RULE-SET,gaming-domain,Gaming
+  - RULE-SET,gaming-classical,Gaming
+  - RULE-SET,telegram-domain,Telegram
+  - RULE-SET,social-domain,Social
+  - RULE-SET,developer-domain,Developer
+  - RULE-SET,developer-classical,Developer
+  - RULE-SET,google-domain,Google
+  - RULE-SET,google-classical,Google
+  - RULE-SET,microsoft-domain,Microsoft
+  - RULE-SET,apple-domain,Apple
+  - RULE-SET,brokerage-ip-ipcidr,Brokerage,no-resolve
+  - RULE-SET,china-domain,DIRECT
+  - RULE-SET,china-classical,DIRECT
+  - RULE-SET,proxy-domain,Final
+  - RULE-SET,proxy-classical,Final
+  - RULE-SET,telegram-ip-ipcidr,Telegram,no-resolve
+  - RULE-SET,cn-ip-ipcidr,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,Final
