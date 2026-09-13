@@ -1,0 +1,541 @@
+# ShiYi 个人配置和策略 | Stash
+# 本配置为 ShiYi 个人整理与分享，仅供参考，请勿用于商业用途。
+# 已对齐 Surge 模板：修复原 "自建节点" 与 "我的节点(订阅)" 因 include-all 混用导致重复的问题，
+# 拆分为独立的 自建节点(仅 proxies 静态节点) / 订阅节点(仅订阅 provider)，
+# 新增 PT站点 策略组（含香港/日本/新加坡/美国节点选择），并精简业务策略组数量。
+# 使用前：填写 proxies 自建节点，并将 proxy-providers.订阅.url 换成你自己的订阅地址。
+
+mode: rule
+log-level: warning
+ipv6: false
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - +.stun.*.*
+    - +.stun.*.*.*
+    - +.stun.*.*.*.*
+    - +.stun.*.*.*.*.*
+    - '*.n.n.srv.nintendo.net'
+    - +.stun.playstation.net
+    - xbox.*.*.microsoft.com
+    - '*.*.xboxlive.com'
+    - '*.msftncsi.com'
+    - '*.msftconnecttest.com'
+    - '*.lan'
+    - '*.local'
+
+proxies: []
+# 自建节点示例：
+# proxies:
+#   - name: Example
+#     type: anytls
+#     server: example.com
+#     port: 443
+#     password: YOUR_PASSWORD
+#     sni: example.com
+#     udp: true
+
+
+proxy-providers:
+  订阅:
+    url: https://YOUR_SUBSCRIPTION_URL
+    interval: 86400
+    benchmark-url: http://cp.cloudflare.com/generate_204
+    benchmark-timeout: 5
+  # 多订阅时复制整块、名称递增即可，并在下方「订阅节点」「自动选择」及各地区分组的 use 列表中加入新名称。
+
+proxy-groups:
+  # ==================== 核心入口（对齐 Surge：节点选择 / 自动选择 / 自建节点 / 订阅节点）====================
+  # 仅使用本地 proxies 中的自建节点，不再用 include-all 混入订阅节点
+  - name: 自建节点
+    type: select
+    proxies:
+      - DIRECT
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Daily.png
+
+  # 仅使用「订阅」provider 中的节点
+  - name: 订阅节点
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Rocket.png
+
+  - name: 自动选择
+    type: url-test
+    use:
+      - 订阅
+    proxies:
+      - DIRECT
+    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    interval: 600
+    tolerance: 50
+    lazy: true
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png
+
+  - name: 节点选择
+    type: select
+    proxies:
+      - 自动选择
+      - 自建节点
+      - 订阅节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Proxy.png
+
+  # ==================== 业务策略组（已精简：整合 YouTube/Streaming/Gaming→国外媒体，Social→X，Brokerage/Crypto→金融服务，Developer/Final 并入节点选择）====================
+  - name: AI
+    type: select
+    proxies: &svc
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇰🇷 韩国
+      - 🇨🇳 台湾
+      - 🇺🇸 美国
+      - 🇬🇧 英国
+      - 🇩🇪 德国
+      - DIRECT
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/AI.png
+
+  - name: Telegram
+    type: select
+    proxies: &svc-nodirect
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇰🇷 韩国
+      - 🇨🇳 台湾
+      - 🇺🇸 美国
+      - 🇬🇧 英国
+      - 🇩🇪 德国
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Telegram.png
+
+  - name: X
+    type: select
+    proxies: *svc-nodirect
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/X.png
+
+  - name: TikTok
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/TikTok.png
+
+  - name: Emby
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Emby.png
+
+  - name: 国外媒体
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
+
+  - name: Google
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Google_Search.png
+
+  - name: 微软服务
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇰🇷 韩国
+      - 🇨🇳 台湾
+      - 🇺🇸 美国
+      - 🇬🇧 英国
+      - 🇩🇪 德国
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Microsoft.png
+
+  - name: 苹果服务
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇰🇷 韩国
+      - 🇨🇳 台湾
+      - 🇺🇸 美国
+      - 🇬🇧 英国
+      - 🇩🇪 德国
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Apple_1.png
+
+  - name: 金融服务
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇺🇸 美国
+    icon: https://raw.githubusercontent.com/lige47/QuanX-icon-rule/main/icon/03CNSoft/alipay.png
+
+  # PT 站点：按要求包含 日本 / 新加坡 / 美国 / 香港 节点选择
+  - name: PT站点
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+      - 自动选择
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇺🇸 美国
+    icon: https://raw.githubusercontent.com/lige47/QuanX-icon-rule/main/icon/05icon/NAS(2).png
+
+  # ==================== 国家/地区策略组（仅保留手动选择，去掉重复的 Auto 分组，来源为订阅节点）====================
+  - name: 🇭🇰 香港
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇭🇰|香港|Hong\s*Kong|(?:^|[^A-Za-z])HK(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Hong_Kong.png
+
+  - name: 🇯🇵 日本
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])JP(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Japan.png
+
+  - name: 🇸🇬 新加坡
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇸🇬|新加坡|狮|獅|Singapore|(?:^|[^A-Za-z])SG(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Singapore.png
+
+  - name: 🇰🇷 韩国
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇰🇷|韩国|韓國|Korea|(?:^|[^A-Za-z])KR(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Korea.png
+
+  - name: 🇨🇳 台湾
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇹🇼|台湾|臺灣|Taiwan|(?:^|[^A-Za-z])TW(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/China.png
+
+  - name: 🇺🇸 美国
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇺🇸|美国|United\s*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_States.png
+
+  - name: 🇬🇧 英国
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇬🇧|英国|英國|United\s*Kingdom|(?:^|[^A-Za-z])(?:UK|GB)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_Kingdom.png
+
+  - name: 🇩🇪 德国
+    type: select
+    use:
+      - 订阅
+    filter: (?i)^.*(?:(?:🇩🇪|德国|德國|Germany|(?:^|[^A-Za-z])DE(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Germany.png
+
+rule-providers:
+  pt-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/PrivateTracker/PrivateTracker.list
+    path: ./rulesets/pt-classical.list
+    interval: 86400
+  lan-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-domain.list
+    path: ./rulesets/lan-domain.list
+    interval: 86400
+  lan-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-ipcidr.list
+    path: ./rulesets/lan-ipcidr.list
+    interval: 86400
+  lan-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/lan-classical.list
+    path: ./rulesets/lan-classical.list
+    interval: 86400
+  apple-cn-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/apple-cn-domain.list
+    path: ./rulesets/apple-cn-domain.list
+    interval: 86400
+  ai-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/ai-domain.list
+    path: ./rulesets/ai-domain.list
+    interval: 86400
+  ai-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/ai-classical.list
+    path: ./rulesets/ai-classical.list
+    interval: 86400
+  schwab-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/schwab-domain.list
+    path: ./rulesets/schwab-domain.list
+    interval: 86400
+  brokerage-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/brokerage-domain.list
+    path: ./rulesets/brokerage-domain.list
+    interval: 86400
+  crypto-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/crypto-domain.list
+    path: ./rulesets/crypto-domain.list
+    interval: 86400
+  youtube-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/youtube-domain.list
+    path: ./rulesets/youtube-domain.list
+    interval: 86400
+  tiktok-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/tiktok-domain.list
+    path: ./rulesets/tiktok-domain.list
+    interval: 86400
+  emby-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/emby-domain.list
+    path: ./rulesets/emby-domain.list
+    interval: 86400
+  streaming-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-domain.list
+    path: ./rulesets/streaming-domain.list
+    interval: 86400
+  streaming-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-classical.list
+    path: ./rulesets/streaming-classical.list
+    interval: 86400
+  gaming-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/gaming-domain.list
+    path: ./rulesets/gaming-domain.list
+    interval: 86400
+  gaming-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/gaming-classical.list
+    path: ./rulesets/gaming-classical.list
+    interval: 86400
+  telegram-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/telegram-domain.list
+    path: ./rulesets/telegram-domain.list
+    interval: 86400
+  social-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/social-domain.list
+    path: ./rulesets/social-domain.list
+    interval: 86400
+  developer-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/developer-domain.list
+    path: ./rulesets/developer-domain.list
+    interval: 86400
+  developer-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/developer-classical.list
+    path: ./rulesets/developer-classical.list
+    interval: 86400
+  google-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/google-domain.list
+    path: ./rulesets/google-domain.list
+    interval: 86400
+  google-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/google-classical.list
+    path: ./rulesets/google-classical.list
+    interval: 86400
+  microsoft-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/microsoft-domain.list
+    path: ./rulesets/microsoft-domain.list
+    interval: 86400
+  apple-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/apple-domain.list
+    path: ./rulesets/apple-domain.list
+    interval: 86400
+  brokerage-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/brokerage-ip-ipcidr.list
+    path: ./rulesets/brokerage-ip-ipcidr.list
+    interval: 86400
+  china-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/china-domain.list
+    path: ./rulesets/china-domain.list
+    interval: 86400
+  china-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/china-classical.list
+    path: ./rulesets/china-classical.list
+    interval: 86400
+  proxy-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/proxy-domain.list
+    path: ./rulesets/proxy-domain.list
+    interval: 86400
+  proxy-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/proxy-classical.list
+    path: ./rulesets/proxy-classical.list
+    interval: 86400
+  telegram-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/telegram-ip-ipcidr.list
+    path: ./rulesets/telegram-ip-ipcidr.list
+    interval: 86400
+  cn-ip-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/cn-ip-ipcidr.list
+    path: ./rulesets/cn-ip-ipcidr.list
+    interval: 86400
+
+rules:
+  # PT 站点最高优先级（与 Surge/Loon 一致）
+  - RULE-SET,pt-classical,PT站点
+
+  # 个人定制（与 Surge / Loon 一致）
+  - DOMAIN-SUFFIX,gtimg.cn,DIRECT
+  - DOMAIN-SUFFIX,myqcloud.com,DIRECT
+  - DOMAIN,time.apple.com,DIRECT
+  - DOMAIN,time.windows.com,DIRECT
+  - DOMAIN,time.google.com,DIRECT
+  - DOMAIN,keba.host,DIRECT
+  - DOMAIN-SUFFIX,longemby.live,Emby
+  - DOMAIN,cf.longemby.com,Emby
+  - DOMAIN,cfcdn.longemby.com,Emby
+  - DOMAIN-SUFFIX,longemby.top,DIRECT
+  - DOMAIN-SUFFIX,longemby.com,DIRECT
+  - DOMAIN-SUFFIX,apple-relay.apple.com,苹果服务
+  - DOMAIN-SUFFIX,apple-relay.cloudflare.com,苹果服务
+  - DOMAIN-SUFFIX,grok.com,AI
+  - DOMAIN-SUFFIX,alipay.com,DIRECT
+  - DOMAIN-SUFFIX,tenpay.com,DIRECT
+  - DOMAIN-SUFFIX,unionpay.com,DIRECT
+
+  # Lane 分层（rule-set 已映射到精简后的策略组）
+  - RULE-SET,lan-domain,DIRECT
+  - RULE-SET,lan-ipcidr,DIRECT,no-resolve
+  - RULE-SET,lan-classical,DIRECT
+  - RULE-SET,apple-cn-domain,DIRECT
+  - RULE-SET,ai-domain,AI
+  - RULE-SET,ai-classical,AI
+  - RULE-SET,schwab-domain,金融服务
+  - RULE-SET,brokerage-domain,金融服务
+  - RULE-SET,crypto-domain,金融服务
+  - RULE-SET,youtube-domain,国外媒体
+  - RULE-SET,tiktok-domain,TikTok
+  - RULE-SET,emby-domain,Emby
+  - RULE-SET,streaming-domain,国外媒体
+  - RULE-SET,streaming-classical,国外媒体
+  - RULE-SET,gaming-domain,国外媒体
+  - RULE-SET,gaming-classical,国外媒体
+  - RULE-SET,telegram-domain,Telegram
+  - RULE-SET,social-domain,X
+  - RULE-SET,developer-domain,节点选择
+  - RULE-SET,developer-classical,节点选择
+  - RULE-SET,google-domain,Google
+  - RULE-SET,google-classical,Google
+  - RULE-SET,microsoft-domain,微软服务
+  - RULE-SET,apple-domain,苹果服务
+  - RULE-SET,brokerage-ip-ipcidr,金融服务,no-resolve
+  - RULE-SET,china-domain,DIRECT
+  - RULE-SET,china-classical,DIRECT
+  - RULE-SET,proxy-domain,节点选择
+  - RULE-SET,proxy-classical,节点选择
+  - RULE-SET,telegram-ip-ipcidr,Telegram,no-resolve
+  - RULE-SET,cn-ip-ipcidr,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,节点选择
