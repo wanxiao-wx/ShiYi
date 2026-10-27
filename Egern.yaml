@@ -1,9 +1,8 @@
 # ShiYi 个人配置和策略 | Egern
 # 本配置为 ShiYi 个人整理与分享，仅供参考，请勿用于商业用途。
-# 已对齐 Surge 模板：补齐「节点选择 / 自建节点 / 订阅节点」三件套，
-# 新增 PT站点 策略组（含香港/日本/新加坡/美国节点选择），并精简业务策略组数量。
-# 使用前：将「订阅节点」urls 换成你自己的订阅地址；如有自建节点，在 proxies 中添加后，
-# 到「自建节点」策略组的 policies 列表里按名称引用。
+# 参考 ClashConnectRules/Egern，按 Egern 规则顺序分流，并保留个人策略选择。
+# 使用前替换订阅 URL；自建节点需在 proxies 中添加，再在自建节点组中引用；
+# 如需参与自动测速和故障转移，也须将节点名称加入对应策略组。
 
 ipv6: false
 allow_external_connections: false
@@ -25,26 +24,27 @@ hijack_dns:
   - 8.8.4.4:53
 vif_excluded_routes:
   - 224.0.0.0/4
-  - 239.255.255.250/32
   - ff02::fb/128
 proxy_latency_test_url: http://cp.cloudflare.com/generate_204
 dns:
   bootstrap:
     - system
+    - 223.5.5.5
   forward:
-    - wildcard:
+    - domain_wildcard:
         match: '*'
         value: bootstrap
 
 # 自建节点：在此填写你的自建代理，例如：
 # proxies:
-#   - name: 🇺🇸Example
-#     type: anytls
-#     server: example.com
-#     port: 443
-#     password: YOUR_PASSWORD
-#     sni: example.com
-#     udp: true
+#   - anytls:
+#       name: Example
+#       server: example.com
+#       port: 443
+#       password: YOUR_PASSWORD
+#       sni: example.com
+#       udp_relay: true
+#       skip_tls_verify: false
 proxies: []
 
 policy_groups:
@@ -56,7 +56,7 @@ policy_groups:
         # 多订阅取消下一行注释：
         # - https://YOUR_SUBSCRIPTION_URL_2
       update_interval: 86400
-      filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+      filter: '(?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|回国|游戏|维护|game|expire|traffic)).+'
       icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Server.png
 
   - select:
@@ -67,25 +67,44 @@ policy_groups:
         # - 🇺🇸Example
       icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Daily.png
 
-  - select:
+  - auto_test:
       name: 自动选择
       policies:
-        - 自建节点
         - 订阅节点
       flatten: true
-      filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+      interval: 600
+      tolerance: 50
+      timeout: 5
       icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png
+
+  - fallback:
+      name: 兜底后备策略
+      policies:
+        - 订阅节点
+      flatten: true
+      interval: 600
+      timeout: 5
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png
+
+  - select:
+      name: 全球手动策略
+      policies:
+        - 订阅节点
+      flatten: true
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
 
   - select:
       name: 节点选择
       policies:
         - 自动选择
+        - 兜底后备策略
         - 自建节点
         - 订阅节点
+        - 全球手动策略
         - DIRECT
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Proxy.png
 
-  # ==================== 业务策略组（已精简：整合 YouTube/Streaming/Gaming→国外媒体，Social→X，Brokerage/Crypto→金融服务，Developer/Final 并入节点选择）====================
+  # ==================== 业务策略组 ====================
   - select:
       name: AI
       policies: &svc
@@ -94,10 +113,7 @@ policy_groups:
         - 🇭🇰 香港
         - 🇯🇵 日本
         - 🇸🇬 新加坡
-        - 🇰🇷 韩国
-        - 🇨🇳 台湾
         - 🇺🇸 美国
-        - 🇬🇧 英国
         - 🇩🇪 德国
         - DIRECT
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/AI.png
@@ -110,10 +126,7 @@ policy_groups:
         - 🇭🇰 香港
         - 🇯🇵 日本
         - 🇸🇬 新加坡
-        - 🇰🇷 韩国
-        - 🇨🇳 台湾
         - 🇺🇸 美国
-        - 🇬🇧 英国
         - 🇩🇪 德国
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Telegram.png
 
@@ -134,8 +147,23 @@ policy_groups:
 
   - select:
       name: 国外媒体
-      policies: *svc
+      policies:
+        - 节点选择
+        - 自动选择
+        - 兜底后备策略
+        - 🇭🇰 香港
+        - 🇯🇵 日本
+        - 🇸🇬 新加坡
+        - 🇺🇸 美国
+        - 🇩🇪 德国
+        - 全球手动策略
+        - DIRECT
       icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png
+
+  - select:
+      name: Netflix
+      policies: *svc
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Netflix.png
 
   - select:
       name: Google
@@ -151,10 +179,7 @@ policy_groups:
         - 🇭🇰 香港
         - 🇯🇵 日本
         - 🇸🇬 新加坡
-        - 🇰🇷 韩国
-        - 🇨🇳 台湾
         - 🇺🇸 美国
-        - 🇬🇧 英国
         - 🇩🇪 德国
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Microsoft.png
 
@@ -167,15 +192,12 @@ policy_groups:
         - 🇭🇰 香港
         - 🇯🇵 日本
         - 🇸🇬 新加坡
-        - 🇰🇷 韩国
-        - 🇨🇳 台湾
         - 🇺🇸 美国
-        - 🇬🇧 英国
         - 🇩🇪 德国
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Apple_1.png
 
   - select:
-      name: 金融服务
+      name: 国内金融
       policies:
         - DIRECT
         - 节点选择
@@ -185,6 +207,31 @@ policy_groups:
         - 🇸🇬 新加坡
         - 🇺🇸 美国
       icon: https://cdn.jsdelivr.net/gh/lige47/QuanX-icon-rule@main/icon/03CNSoft/alipay.png
+
+  - select:
+      name: 国际支付
+      policies: *svc
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/PayPal.png
+
+  - select:
+      name: 国际券商
+      policies: *svc
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png
+
+  - select:
+      name: 数字资产
+      policies: *svc
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Cryptocurrency.png
+
+  - select:
+      name: Speedtest
+      policies:
+        - DIRECT
+        - 节点选择
+        - 自动选择
+        - 兜底后备策略
+        - 全球手动策略
+      icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Speedtest.png
 
   # PT 站点：按要求包含 日本 / 新加坡 / 美国 / 香港 节点选择
   - select:
@@ -205,7 +252,7 @@ policy_groups:
       policies:
         - 订阅节点
       flatten: true
-      filter: (?i)^.*(?:(?:🇭🇰|香港|Hong\s*Kong|(?:^|[^A-Za-z])HK(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+      filter: '(?i)(?:🇭🇰|香港|Hong[\s_-]*Kong|(?:^|[^A-Za-z])(?:HK|HKG)[0-9]*(?:$|[^A-Za-z]))'
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Hong_Kong.png
 
   - select:
@@ -213,7 +260,7 @@ policy_groups:
       policies:
         - 订阅节点
       flatten: true
-      filter: (?i)^.*(?:(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])JP(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+      filter: '(?i)(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])(?:JP|JPN)[0-9]*(?:$|[^A-Za-z]))'
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Japan.png
 
   - select:
@@ -221,63 +268,27 @@ policy_groups:
       policies:
         - 订阅节点
       flatten: true
-      filter: (?i)^.*(?:(?:🇸🇬|新加坡|狮|獅|Singapore|(?:^|[^A-Za-z])SG(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+      filter: '(?i)(?:🇸🇬|新加坡|狮城|獅城|Singapore|(?:^|[^A-Za-z])(?:SG|SGP)[0-9]*(?:$|[^A-Za-z]))'
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Singapore.png
-
-  - select:
-      name: 🇰🇷 韩国
-      policies:
-        - 订阅节点
-      flatten: true
-      filter: (?i)^.*(?:(?:🇰🇷|韩国|韓國|Korea|(?:^|[^A-Za-z])KR(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-      icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Korea.png
-
-  - select:
-      name: 🇨🇳 台湾
-      policies:
-        - 订阅节点
-      flatten: true
-      filter: (?i)^.*(?:(?:🇹🇼|台湾|臺灣|Taiwan|(?:^|[^A-Za-z])TW(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-      icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/China.png
 
   - select:
       name: 🇺🇸 美国
       policies:
         - 订阅节点
       flatten: true
-      filter: (?i)^.*(?:(?:🇺🇸|美国|United\s*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+      filter: '(?i)(?:🇺🇸|美国|美國|United[\s_-]*States|(?:^|[^A-Za-z])(?:US|USA)[0-9]*(?:$|[^A-Za-z]))'
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_States.png
-
-  - select:
-      name: 🇬🇧 英国
-      policies:
-        - 订阅节点
-      flatten: true
-      filter: (?i)^.*(?:(?:🇬🇧|英国|英國|United\s*Kingdom|(?:^|[^A-Za-z])(?:UK|GB)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-      icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_Kingdom.png
 
   - select:
       name: 🇩🇪 德国
       policies:
         - 订阅节点
       flatten: true
-      filter: (?i)^.*(?:(?:🇩🇪|德国|德國|Germany|(?:^|[^A-Za-z])DE(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+      filter: '(?i)(?:🇩🇪|德国|德國|Germany|Deutschland|(?:^|[^A-Za-z])(?:DE|DEU)[0-9]*(?:$|[^A-Za-z]))'
       icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Germany.png
 
 rules:
-  # PT 站点最高优先级（与 Surge/Loon 一致）
-  - rule_set:
-      match: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/PrivateTracker/PrivateTracker.list
-      policy: PT站点
-      update_interval: 86400
-
-  # 个人高优先级域名（与 Surge / Loon 模板一致）
-  - domain_suffix:
-      match: gtimg.cn
-      policy: DIRECT
-  - domain_suffix:
-      match: myqcloud.com
-      policy: DIRECT
+  # 个人定制优先：Egern 按配置顺序匹配
   - domain:
       match: time.apple.com
       policy: DIRECT
@@ -286,6 +297,15 @@ rules:
       policy: DIRECT
   - domain:
       match: time.google.com
+      policy: DIRECT
+  - domain:
+      match: time.nist.gov
+      policy: DIRECT
+  - domain:
+      match: ntp.aliyun.com
+      policy: DIRECT
+  - domain_suffix:
+      match: pool.ntp.org
       policy: DIRECT
   - domain:
       match: keba.host
@@ -316,38 +336,83 @@ rules:
       policy: AI
   - domain_suffix:
       match: alipay.com
-      policy: DIRECT
+      policy: 国内金融
   - domain_suffix:
       match: tenpay.com
-      policy: DIRECT
+      policy: 国内金融
   - domain_suffix:
       match: unionpay.com
-      policy: DIRECT
+      policy: 国内金融
+  - domain_suffix:
+      match: cmbchina.com
+      policy: 国内金融
+  - domain_suffix:
+      match: icbc.com.cn
+      policy: 国内金融
+  - domain_suffix:
+      match: abchina.com
+      policy: 国内金融
+  - domain_suffix:
+      match: boc.cn
+      policy: 国内金融
+  - domain_suffix:
+      match: ccb.com
+      policy: 国内金融
+  - domain_suffix:
+      match: bankcomm.com
+      policy: 国内金融
+  - domain_suffix:
+      match: psbc.com
+      policy: 国内金融
+  - domain_suffix:
+      match: pingan.com
+      policy: 国内金融
+  - domain_suffix:
+      match: eastmoney.com
+      policy: 国内金融
 
-  # Lane 分层（rule-set 已映射到精简后的策略组）
+  # PT 与局域网
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/PrivateTracker/PrivateTracker.yaml
+      policy: PT站点
+      update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/lan.yaml
       policy: DIRECT
       update_interval: 86400
-  - rule_set:
-      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/apple-cn.yaml
-      policy: DIRECT
-      update_interval: 86400
+
+  # 具体业务优先于通用规则
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/ai.yaml
       policy: AI
       update_interval: 86400
   - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/PayPal/PayPal.yaml
+      policy: 国际支付
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/VISA/VISA.yaml
+      policy: 国际支付
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/Stripe/Stripe.yaml
+      policy: 国际支付
+      update_interval: 86400
+  - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/schwab.yaml
-      policy: 金融服务
+      policy: 国际券商
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/brokerage.yaml
-      policy: 金融服务
+      policy: 国际券商
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/crypto.yaml
-      policy: 金融服务
+      policy: 数字资产
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/Netflix/Netflix.yaml
+      policy: Netflix
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/youtube.yaml
@@ -362,20 +427,28 @@ rules:
       policy: Emby
       update_interval: 86400
   - rule_set:
-      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/streaming.yaml
-      policy: 国外媒体
-      update_interval: 86400
-  - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/gaming.yaml
-      policy: 国外媒体
+      policy: 节点选择
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/telegram.yaml
       policy: Telegram
       update_interval: 86400
   - rule_set:
+      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/telegram-ip.yaml
+      policy: Telegram
+      update_interval: 86400
+  - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/social.yaml
       policy: X
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/Speedtest/Speedtest.yaml
+      policy: Speedtest
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/GitHub/GitHub.yaml
+      policy: 节点选择
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/developer.yaml
@@ -394,9 +467,35 @@ rules:
       policy: 苹果服务
       update_interval: 86400
   - rule_set:
-      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/brokerage-ip.yaml
-      policy: 金融服务
+      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/apple-cn.yaml
+      policy: 苹果服务
       update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/brokerage-ip.yaml
+      policy: 国际券商
+      update_interval: 86400
+  # 国内应用直连；具体业务规则（如 TikTok）已在前面匹配
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/WeChat/WeChat.yaml
+      policy: DIRECT
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/NetEaseMusic/NetEaseMusic.yaml
+      policy: DIRECT
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/BiliBili/BiliBili.yaml
+      policy: DIRECT
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/Weibo/Weibo.yaml
+      policy: DIRECT
+      update_interval: 86400
+  - rule_set:
+      match: https://raw.githubusercontent.com/Repcz/EgernRules/X/Rules/XiaoHongShu/XiaoHongShu.yaml
+      policy: DIRECT
+      update_interval: 86400
+  # 国内与通用兜底
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/china.yaml
       policy: DIRECT
@@ -404,10 +503,6 @@ rules:
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/proxy.yaml
       policy: 节点选择
-      update_interval: 86400
-  - rule_set:
-      match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/telegram-ip.yaml
-      policy: Telegram
       update_interval: 86400
   - rule_set:
       match: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/egern/rules/cn-ip.yaml
