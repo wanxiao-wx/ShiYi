@@ -29,79 +29,7 @@ dns:
     - '*.lan'
     - '*.local'
 
-proxies:
-  - name: '🇺🇸 BWH-US'
-    type: anytls
-    server: 104.224.156.242
-    port: 44656
-    password: 'urE6SFTTWHOP2LuulJQ8MaZZ'
-    sni: bwh.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇺🇸 DMIT-US'
-    type: anytls
-    server: 179.255.121.116
-    port: 51645
-    password: 'elvidfK3LStWBUVPduwH5lvs'
-    sni: dmit.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇺🇸 FX-US'
-    type: anytls
-    server: 152.175.116.62
-    port: 24075
-    password: 'zogjJhZAqijwmg9Y70GDzSj8'
-    sni: fxus.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇩🇪 ShanDun-DE'
-    type: anytls
-    server: 189.24.108.9
-    port: 24085
-    password: 'EtOrbXSEaLbG8L5undssFM5U'
-    sni: de9929.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇯🇵 Ali-LQ-Green-JP'
-    type: anytls
-    server: 139.224.27.157
-    port: 46106
-    password: 'fBBSM2WsytAyKo1KIErvgosB'
-    sni: green.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇯🇵 Ali-LQ-KFC-JP'
-    type: anytls
-    server: 139.224.27.157
-    port: 63600
-    password: 'GzuOeeDYHyZr0Xt9uvAgaGFm'
-    sni: kfcjp.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇭🇰 Ali-LQ-RFC-HK-T1'
-    type: anytls
-    server: 139.224.27.157
-    port: 49529
-    password: '5tWlGperdtUmM459r4Hd83st'
-    sni: rfchk.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇸🇬 Ali-LQ-RFC-SG-T1'
-    type: anytls
-    server: 139.224.27.157
-    port: 18492
-    password: 'DwQpDgK3XZQwkVskXbBi5pwb'
-    sni: rfcsg.xiaowan.de
-    udp: true
-    skip-cert-verify: false
-  - name: '🇭🇰 Ali-LQ-BageVM-HKS'
-    type: anytls
-    server: 139.224.27.157
-    port: 26391
-    password: 'GYUE4kdBp3vqAilUQUpRrRdZ'
-    sni: hks.xiaowan.de
-    udp: true
-    skip-cert-verify: false
+proxies: []
 # 自建节点示例：
 # proxies:
 #   - name: Example
@@ -128,15 +56,6 @@ proxy-groups:
     type: select
     proxies:
       - DIRECT
-      - '🇺🇸 BWH-US'
-      - '🇺🇸 DMIT-US'
-      - '🇺🇸 FX-US'
-      - '🇩🇪 ShanDun-DE'
-      - '🇯🇵 Ali-LQ-Green-JP'
-      - '🇯🇵 Ali-LQ-KFC-JP'
-      - '🇭🇰 Ali-LQ-RFC-HK-T1'
-      - '🇸🇬 Ali-LQ-RFC-SG-T1'
-      - '🇭🇰 Ali-LQ-BageVM-HKS'
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Daily.png
 
   # 仅使用「订阅」provider 中的节点
