@@ -1,9 +1,8 @@
 # ShiYi 个人配置和策略 | Stash
 # 本配置为 ShiYi 个人整理与分享，仅供参考，请勿用于商业用途。
-# 已对齐 Surge 模板：修复原 "自建节点" 与 "我的节点(订阅)" 因 include-all 混用导致重复的问题，
-# 拆分为独立的 自建节点(仅 proxies 静态节点) / 订阅节点(仅订阅 provider)，
-# 新增 PT站点 策略组（含香港/日本/新加坡/美国节点选择），并精简业务策略组数量。
-# 使用前：填写 proxies 自建节点，并将 proxy-providers.订阅.url 换成你自己的订阅地址。
+# 按 Stash 顺序匹配规则；业务策略与 Loon 配置保持相近。
+# 使用前替换订阅 URL；添加自建节点后，需把节点名称加入「自建节点」，
+# 如需参与测速，还需加入「自动选择」和「兜底后备策略」。
 
 mode: rule
 log-level: warning
@@ -13,6 +12,9 @@ dns:
   enable: true
   ipv6: false
   enhanced-mode: fake-ip
+  nameserver:
+    - system
+    - 223.5.5.5
   fake-ip-filter:
     - +.stun.*.*
     - +.stun.*.*.*
@@ -61,31 +63,47 @@ proxy-groups:
     type: select
     use:
       - 订阅
-    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    filter: '(?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|回国|游戏|维护|game|expire|traffic)).+'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Rocket.png
 
   - name: 自动选择
     type: url-test
     use:
       - 订阅
-    proxies:
-      - DIRECT
-    filter: (?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|expire|traffic)).+
+    filter: '(?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|回国|游戏|维护|game|expire|traffic)).+'
     interval: 600
     tolerance: 50
     lazy: true
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png
 
+  - name: 兜底后备策略
+    type: fallback
+    use:
+      - 订阅
+    filter: '(?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|回国|游戏|维护|game|expire|traffic)).+'
+    interval: 600
+    lazy: true
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png
+
+  - name: 全球手动策略
+    type: select
+    use:
+      - 订阅
+    filter: '(?i)^(?!.*(?:剩余流量|套餐到期|官网|机场|过期|回国|游戏|维护|game|expire|traffic)).+'
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
+
   - name: 节点选择
     type: select
     proxies:
       - 自动选择
+      - 兜底后备策略
       - 自建节点
       - 订阅节点
+      - 全球手动策略
       - DIRECT
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Proxy.png
 
-  # ==================== 业务策略组（已精简：整合 YouTube/Streaming/Gaming→国外媒体，Social→X，Brokerage/Crypto→金融服务，Developer/Final 并入节点选择）====================
+  # ==================== 业务策略组 ====================
   - name: AI
     type: select
     proxies: &svc
@@ -94,10 +112,7 @@ proxy-groups:
       - 🇭🇰 香港
       - 🇯🇵 日本
       - 🇸🇬 新加坡
-      - 🇰🇷 韩国
-      - 🇨🇳 台湾
       - 🇺🇸 美国
-      - 🇬🇧 英国
       - 🇩🇪 德国
       - DIRECT
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/AI.png
@@ -110,10 +125,7 @@ proxy-groups:
       - 🇭🇰 香港
       - 🇯🇵 日本
       - 🇸🇬 新加坡
-      - 🇰🇷 韩国
-      - 🇨🇳 台湾
       - 🇺🇸 美国
-      - 🇬🇧 英国
       - 🇩🇪 德国
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Telegram.png
 
@@ -134,8 +146,23 @@ proxy-groups:
 
   - name: 国外媒体
     type: select
-    proxies: *svc
+    proxies:
+      - 节点选择
+      - 自动选择
+      - 兜底后备策略
+      - 🇭🇰 香港
+      - 🇯🇵 日本
+      - 🇸🇬 新加坡
+      - 🇺🇸 美国
+      - 🇩🇪 德国
+      - 全球手动策略
+      - DIRECT
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png
+
+  - name: Netflix
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Netflix.png
 
   - name: Google
     type: select
@@ -151,10 +178,7 @@ proxy-groups:
       - 🇭🇰 香港
       - 🇯🇵 日本
       - 🇸🇬 新加坡
-      - 🇰🇷 韩国
-      - 🇨🇳 台湾
       - 🇺🇸 美国
-      - 🇬🇧 英国
       - 🇩🇪 德国
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Microsoft.png
 
@@ -167,14 +191,11 @@ proxy-groups:
       - 🇭🇰 香港
       - 🇯🇵 日本
       - 🇸🇬 新加坡
-      - 🇰🇷 韩国
-      - 🇨🇳 台湾
       - 🇺🇸 美国
-      - 🇬🇧 英国
       - 🇩🇪 德国
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Apple_1.png
 
-  - name: 金融服务
+  - name: 国内金融
     type: select
     proxies:
       - DIRECT
@@ -185,6 +206,31 @@ proxy-groups:
       - 🇸🇬 新加坡
       - 🇺🇸 美国
     icon: https://raw.githubusercontent.com/lige47/QuanX-icon-rule/main/icon/03CNSoft/alipay.png
+
+  - name: 国际支付
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/PayPal.png
+
+  - name: 国际券商
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png
+
+  - name: 数字资产
+    type: select
+    proxies: *svc
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Cryptocurrency.png
+
+  - name: Speedtest
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+      - 自动选择
+      - 兜底后备策略
+      - 全球手动策略
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Speedtest.png
 
   # PT 站点：按要求包含 日本 / 新加坡 / 美国 / 香港 节点选择
   - name: PT站点
@@ -204,59 +250,68 @@ proxy-groups:
     type: select
     use:
       - 订阅
-    filter: (?i)^.*(?:(?:🇭🇰|香港|Hong\s*Kong|(?:^|[^A-Za-z])HK(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    filter: '(?i)(?:🇭🇰|香港|Hong[\s_-]*Kong|(?:^|[^A-Za-z])(?:HK|HKG)(?:[0-9]+)?(?:$|[^A-Za-z]))'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Hong_Kong.png
 
   - name: 🇯🇵 日本
     type: select
     use:
       - 订阅
-    filter: (?i)^.*(?:(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])JP(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    filter: '(?i)(?:🇯🇵|日本|Japan|(?:^|[^A-Za-z])(?:JP|JPN)(?:[0-9]+)?(?:$|[^A-Za-z]))'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Japan.png
 
   - name: 🇸🇬 新加坡
     type: select
     use:
       - 订阅
-    filter: (?i)^.*(?:(?:🇸🇬|新加坡|狮|獅|Singapore|(?:^|[^A-Za-z])SG(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    filter: '(?i)(?:🇸🇬|新加坡|狮城|獅城|Singapore|(?:^|[^A-Za-z])(?:SG|SGP)(?:[0-9]+)?(?:$|[^A-Za-z]))'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Singapore.png
-
-  - name: 🇰🇷 韩国
-    type: select
-    use:
-      - 订阅
-    filter: (?i)^.*(?:(?:🇰🇷|韩国|韓國|Korea|(?:^|[^A-Za-z])KR(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Korea.png
-
-  - name: 🇨🇳 台湾
-    type: select
-    use:
-      - 订阅
-    filter: (?i)^.*(?:(?:🇹🇼|台湾|臺灣|Taiwan|(?:^|[^A-Za-z])TW(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/China.png
 
   - name: 🇺🇸 美国
     type: select
     use:
       - 订阅
-    filter: (?i)^.*(?:(?:🇺🇸|美国|United\s*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    filter: '(?i)(?:🇺🇸|美国|美國|United[\s_-]*States|(?:^|[^A-Za-z])(?:US|USA)(?:[0-9]+)?(?:$|[^A-Za-z]))'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_States.png
-
-  - name: 🇬🇧 英国
-    type: select
-    use:
-      - 订阅
-    filter: (?i)^.*(?:(?:🇬🇧|英国|英國|United\s*Kingdom|(?:^|[^A-Za-z])(?:UK|GB)(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
-    icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/United_Kingdom.png
 
   - name: 🇩🇪 德国
     type: select
     use:
       - 订阅
-    filter: (?i)^.*(?:(?:🇩🇪|德国|德國|Germany|(?:^|[^A-Za-z])DE(?:[0-9]+)?(?:$|[^A-Za-z]))).*$
+    filter: '(?i)(?:🇩🇪|德国|德國|Germany|Deutschland|(?:^|[^A-Za-z])(?:DE|DEU)(?:[0-9]+)?(?:$|[^A-Za-z]))'
     icon: https://raw.githubusercontent.com/wenjinliuu/Lane/main/assets/icons/third-party/qure/Germany.png
 
 rule-providers:
+  wechat-direct:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml
+    path: ./rulesets/wechat-direct.yaml
+    interval: 86400
+  netease-music-direct:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/NetEaseMusic/NetEaseMusic.yaml
+    path: ./rulesets/netease-music-direct.yaml
+    interval: 86400
+  bilibili-direct:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/BiliBili/BiliBili.yaml
+    path: ./rulesets/bilibili-direct.yaml
+    interval: 86400
+  weibo-direct:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Weibo/Weibo.yaml
+    path: ./rulesets/weibo-direct.yaml
+    interval: 86400
+  xiaohongshu-direct:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/XiaoHongShu/XiaoHongShu.yaml
+    path: ./rulesets/xiaohongshu-direct.yaml
+    interval: 86400
   pt-classical:
     type: http
     behavior: classical
@@ -348,19 +403,41 @@ rule-providers:
     url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/emby-domain.list
     path: ./rulesets/emby-domain.list
     interval: 86400
-  streaming-domain:
-    type: http
-    behavior: domain
-    format: text
-    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-domain.list
-    path: ./rulesets/streaming-domain.list
-    interval: 86400
-  streaming-classical:
-    type: http
+  netflix-classical:
     behavior: classical
-    format: text
-    url: https://raw.githubusercontent.com/wenjinliuu/Lane/main/dist/stash/rules/streaming-classical.list
-    path: ./rulesets/streaming-classical.list
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.yaml
+    path: ./rulesets/netflix.yaml
+    interval: 86400
+  paypal-classical:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/PayPal/PayPal.yaml
+    path: ./rulesets/paypal.yaml
+    interval: 86400
+  visa-classical:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/VISA/VISA.yaml
+    path: ./rulesets/visa.yaml
+    interval: 86400
+  stripe-classical:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Stripe/Stripe.yaml
+    path: ./rulesets/stripe.yaml
+    interval: 86400
+  speedtest-classical:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Speedtest/Speedtest.yaml
+    path: ./rulesets/speedtest.yaml
+    interval: 86400
+  github-classical:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub.yaml
+    path: ./rulesets/github.yaml
     interval: 86400
   gaming-domain:
     type: http
@@ -483,15 +560,13 @@ rule-providers:
     interval: 86400
 
 rules:
-  # PT 站点最高优先级（与 Surge/Loon 一致）
-  - RULE-SET,pt-classical,PT站点
-
-  # 个人定制（与 Surge / Loon 一致）
-  - DOMAIN-SUFFIX,gtimg.cn,DIRECT
-  - DOMAIN-SUFFIX,myqcloud.com,DIRECT
+  # 个人定制优先；Stash 按列表从上到下匹配
   - DOMAIN,time.apple.com,DIRECT
   - DOMAIN,time.windows.com,DIRECT
   - DOMAIN,time.google.com,DIRECT
+  - DOMAIN,time.nist.gov,DIRECT
+  - DOMAIN,ntp.aliyun.com,DIRECT
+  - DOMAIN-SUFFIX,pool.ntp.org,DIRECT
   - DOMAIN,keba.host,DIRECT
   - DOMAIN-SUFFIX,longemby.live,Emby
   - DOMAIN,cf.longemby.com,Emby
@@ -501,41 +576,68 @@ rules:
   - DOMAIN-SUFFIX,apple-relay.apple.com,苹果服务
   - DOMAIN-SUFFIX,apple-relay.cloudflare.com,苹果服务
   - DOMAIN-SUFFIX,grok.com,AI
-  - DOMAIN-SUFFIX,alipay.com,DIRECT
-  - DOMAIN-SUFFIX,tenpay.com,DIRECT
-  - DOMAIN-SUFFIX,unionpay.com,DIRECT
+  - DOMAIN-SUFFIX,alipay.com,国内金融
+  - DOMAIN-SUFFIX,tenpay.com,国内金融
+  - DOMAIN-SUFFIX,unionpay.com,国内金融
+  - DOMAIN-SUFFIX,cmbchina.com,国内金融
+  - DOMAIN-SUFFIX,icbc.com.cn,国内金融
+  - DOMAIN-SUFFIX,abchina.com,国内金融
+  - DOMAIN-SUFFIX,boc.cn,国内金融
+  - DOMAIN-SUFFIX,ccb.com,国内金融
+  - DOMAIN-SUFFIX,bankcomm.com,国内金融
+  - DOMAIN-SUFFIX,psbc.com,国内金融
+  - DOMAIN-SUFFIX,pingan.com,国内金融
+  - DOMAIN-SUFFIX,eastmoney.com,国内金融
 
-  # Lane 分层（rule-set 已映射到精简后的策略组）
+  # PT 和局域网
+  - RULE-SET,pt-classical,PT站点
   - RULE-SET,lan-domain,DIRECT
   - RULE-SET,lan-ipcidr,DIRECT,no-resolve
   - RULE-SET,lan-classical,DIRECT
-  - RULE-SET,apple-cn-domain,DIRECT
+
+  # 业务规则优先于通用规则
   - RULE-SET,ai-domain,AI
   - RULE-SET,ai-classical,AI
-  - RULE-SET,schwab-domain,金融服务
-  - RULE-SET,brokerage-domain,金融服务
-  - RULE-SET,crypto-domain,金融服务
+  - RULE-SET,paypal-classical,国际支付
+  - RULE-SET,visa-classical,国际支付
+  - RULE-SET,stripe-classical,国际支付
+  - RULE-SET,schwab-domain,国际券商
+  - RULE-SET,brokerage-domain,国际券商
+  - RULE-SET,crypto-domain,数字资产
+  - RULE-SET,netflix-classical,Netflix
   - RULE-SET,youtube-domain,国外媒体
   - RULE-SET,tiktok-domain,TikTok
   - RULE-SET,emby-domain,Emby
-  - RULE-SET,streaming-domain,国外媒体
-  - RULE-SET,streaming-classical,国外媒体
-  - RULE-SET,gaming-domain,国外媒体
-  - RULE-SET,gaming-classical,国外媒体
+  - RULE-SET,gaming-domain,节点选择
+  - RULE-SET,gaming-classical,节点选择
   - RULE-SET,telegram-domain,Telegram
+  - RULE-SET,telegram-ip-ipcidr,Telegram,no-resolve
   - RULE-SET,social-domain,X
+  - RULE-SET,speedtest-classical,Speedtest
+  - RULE-SET,github-classical,节点选择
   - RULE-SET,developer-domain,节点选择
   - RULE-SET,developer-classical,节点选择
   - RULE-SET,google-domain,Google
   - RULE-SET,google-classical,Google
   - RULE-SET,microsoft-domain,微软服务
+  - RULE-SET,apple-cn-domain,苹果服务
   - RULE-SET,apple-domain,苹果服务
-  - RULE-SET,brokerage-ip-ipcidr,金融服务,no-resolve
+  - RULE-SET,brokerage-ip-ipcidr,国际券商,no-resolve
+
+  # 国内应用直连（排在 TikTok 等业务规则之后）
+  - RULE-SET,wechat-direct,DIRECT
+  - RULE-SET,netease-music-direct,DIRECT
+  - RULE-SET,bilibili-direct,DIRECT
+  - RULE-SET,weibo-direct,DIRECT
+  - RULE-SET,xiaohongshu-direct,DIRECT
+
+  # 国内和通用兜底
   - RULE-SET,china-domain,DIRECT
   - RULE-SET,china-classical,DIRECT
   - RULE-SET,proxy-domain,节点选择
   - RULE-SET,proxy-classical,节点选择
-  - RULE-SET,telegram-ip-ipcidr,Telegram,no-resolve
   - RULE-SET,cn-ip-ipcidr,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,节点选择
+
+ 
