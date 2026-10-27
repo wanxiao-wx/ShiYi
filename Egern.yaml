@@ -45,79 +45,7 @@ dns:
 #       sni: example.com
 #       udp_relay: true
 #       skip_tls_verify: false
-proxies:
-  - anytls:
-      name: '🇺🇸 BWH-US'
-      server: 104.224.156.242
-      port: 44656
-      password: 'urE6SFTTWHOP2LuulJQ8MaZZ'
-      sni: bwh.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇺🇸 DMIT-US'
-      server: 179.255.121.116
-      port: 51645
-      password: 'elvidfK3LStWBUVPduwH5lvs'
-      sni: dmit.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇺🇸 FX-US'
-      server: 152.175.116.62
-      port: 24075
-      password: 'zogjJhZAqijwmg9Y70GDzSj8'
-      sni: fxus.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇩🇪 ShanDun-DE'
-      server: 189.24.108.9
-      port: 24085
-      password: 'EtOrbXSEaLbG8L5undssFM5U'
-      sni: de9929.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇯🇵 Ali-LQ-Green-JP'
-      server: 139.224.27.157
-      port: 46106
-      password: 'fBBSM2WsytAyKo1KIErvgosB'
-      sni: green.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇯🇵 Ali-LQ-KFC-JP'
-      server: 139.224.27.157
-      port: 63600
-      password: 'GzuOeeDYHyZr0Xt9uvAgaGFm'
-      sni: kfcjp.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇭🇰 Ali-LQ-RFC-HK-T1'
-      server: 139.224.27.157
-      port: 49529
-      password: '5tWlGperdtUmM459r4Hd83st'
-      sni: rfchk.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇸🇬 Ali-LQ-RFC-SG-T1'
-      server: 139.224.27.157
-      port: 18492
-      password: 'DwQpDgK3XZQwkVskXbBi5pwb'
-      sni: rfcsg.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
-  - anytls:
-      name: '🇭🇰 Ali-LQ-BageVM-HKS'
-      server: 139.224.27.157
-      port: 26391
-      password: 'GYUE4kdBp3vqAilUQUpRrRdZ'
-      sni: hks.xiaowan.de
-      udp_relay: true
-      skip_tls_verify: false
+proxies: []
 
 policy_groups:
   # ==================== 核心入口（对齐 Surge：节点选择 / 自动选择 / 自建节点 / 订阅节点）====================
@@ -135,15 +63,6 @@ policy_groups:
       name: 自建节点
       policies:
         - DIRECT
-        - '🇺🇸 BWH-US'
-        - '🇺🇸 DMIT-US'
-        - '🇺🇸 FX-US'
-        - '🇩🇪 ShanDun-DE'
-        - '🇯🇵 Ali-LQ-Green-JP'
-        - '🇯🇵 Ali-LQ-KFC-JP'
-        - '🇭🇰 Ali-LQ-RFC-HK-T1'
-        - '🇸🇬 Ali-LQ-RFC-SG-T1'
-        - '🇭🇰 Ali-LQ-BageVM-HKS'
         # 在上方添加自建节点名称，例如：
         # - 🇺🇸Example
       icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Daily.png
